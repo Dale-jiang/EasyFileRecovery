@@ -16,6 +16,7 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflate: (layoutInflat
         binding = inflate(layoutInflater)
         setContentView(binding.root)
         initUI()
+        initListeners()
         initData()
     }
 
@@ -23,6 +24,7 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflate: (layoutInflat
 
     protected abstract fun initUI()
     protected open fun initData() = Unit
+    protected open fun initListeners() = Unit
 
     @Suppress("DEPRECATION")
     private fun adjustSize() = runCatching {

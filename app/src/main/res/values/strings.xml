@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">Easy File Recovery</string>
     <string name="str_unknown_error">unknown error</string>
+    <string name="str_main_des">Query recovery files and restore with one click</string>
+    <string name="str_picture_recover">Photo Recovery</string>
+    <string name="str_voice_recover">Audio Recovery</string>
+    <string name="str_video_recover">Video Recovery</string>
+    <string name="str_doc_recover">Doc Recovery</string>
+    <string name="str_backup_and_restore"><![CDATA[Backup & Restore]]></string>
+    <string name="str_restored_folder">Restored Folder</string>
+    <string name="str_backup_folder">Backup Folder</string>
 </resources>
