@@ -50,6 +50,11 @@
             android:exported="false"
             android:launchMode="singleTask" />
 
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:configChanges="density|keyboardHidden|screenSize"
+            android:launchMode="singleTop" />
+
     </application>
 
 </manifest>

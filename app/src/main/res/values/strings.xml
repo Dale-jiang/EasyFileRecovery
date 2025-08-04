@@ -9,4 +9,6 @@
     <string name="str_backup_and_restore"><![CDATA[Backup & Restore]]></string>
     <string name="str_restored_folder">Restored Folder</string>
     <string name="str_backup_folder">Backup Folder</string>
+    <string name="str_settings">Settings</string>
+    <string name="str_privacy_amp_policy"><![CDATA[Privacy & Policy]]></string>
 </resources>
