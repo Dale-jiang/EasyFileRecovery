@@ -61,5 +61,6 @@ fun sBoolean(key: String? = null, default: Boolean = false) = PreferenceDelegate
 fun sDouble(key: String? = null, default: Double = 0.0) = PreferenceDelegate(key, default)
 
 var firstLaunchTag by sBoolean(default = true)
+var isFirstRequestStorage by sBoolean(default = true)
 
 

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Easy File Recovery</string>
+    <string name="str_unknown_error">unknown error</string>
 </resources>
