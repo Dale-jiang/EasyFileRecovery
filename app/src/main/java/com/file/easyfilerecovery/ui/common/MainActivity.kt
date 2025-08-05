@@ -19,7 +19,9 @@ class MainActivity : BaseStorageActivity<ActivityMainBinding>(ActivityMainBindin
             }
 
             btnPic.setOnClickListener {
-
+                checkPermission {
+                    launchActivity<CommonScanActivity>()
+                }
             }
 
             btnVoice.setOnClickListener {

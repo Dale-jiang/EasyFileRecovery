@@ -9,4 +9,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="trans">#00000000</color>
     <color name="c_f0f5ff">#F0F5FF</color>
+
+    <color name="c_main">#4388FF</color>
 </resources>
