@@ -28,7 +28,7 @@ class GlobalViewModel : ViewModel() {
 
             val files = mutableListOf<FileInfo>()
 
-            val protectPath = Environment.getExternalStorageDirectory().resolve("EasyFileRecoveryBackup").path
+            val protectPath = Environment.getExternalStorageDirectory().resolve("EasyFileRecoveryOwner").path
 
             val mimeTypes = FileUtils.getMimeTypesFor(recoverType)
             val selection = buildString {
