@@ -1,11 +1,12 @@
 package com.file.easyfilerecovery.utils
 
+import android.media.MediaMetadataRetriever
 import com.file.easyfilerecovery.data.RecoverType
 import java.io.File
 
 object FileUtils {
 
-    private val imageMimeTypes = listOf(
+    val imageMimeTypes = listOf(
         "image/png", "image/jpeg", "image/gif",
         "image/heif", "image/bmp", "image/webp"
     )
@@ -68,5 +69,17 @@ object FileUtils {
 
 
     fun isHiddenFile(file: File): Boolean = generateSequence(file) { it.parentFile }.any { it.isHidden || it.name.startsWith(".") }
+
+    fun getMediaDuration(path: String): Long {
+        val retriever = MediaMetadataRetriever()
+        val duration = runCatching {
+            retriever.setDataSource(path)
+            val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            retriever.release()
+            return@runCatching durationStr?.toLongOrNull() ?: 0L
+        }.getOrNull() ?: 0L
+        runCatching { retriever.release() }
+        return duration
+    }
 
 }

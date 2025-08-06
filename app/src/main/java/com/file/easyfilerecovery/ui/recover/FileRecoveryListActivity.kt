@@ -5,16 +5,25 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.file.easyfilerecovery.R
+import com.file.easyfilerecovery.data.FileInfo
 import com.file.easyfilerecovery.data.RecoverType
+import com.file.easyfilerecovery.data.StorageType
 import com.file.easyfilerecovery.databinding.ActivityFileRecoverListBinding
 import com.file.easyfilerecovery.ui.base.BaseActivity
 import com.file.easyfilerecovery.ui.common.GlobalViewModel
+import com.file.easyfilerecovery.utils.CommonUtils.getPastTimeRange
+import com.file.easyfilerecovery.utils.FileUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Suppress("DEPRECATION")
 class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(ActivityFileRecoverListBinding::inflate) {
@@ -50,54 +59,143 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
     }
 
     override fun initUI() {
+        binding.tvTitle.text = recoverType?.getRecoverName(this) ?: ""
+        initViewPagerAndTabs()
+    }
 
-        binding.apply {
 
-            tvTitle.text = recoverType?.getRecoverName(this@FileRecoveryListActivity) ?: ""
+    private fun initViewPagerAndTabs() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val allFiles = globalVm.allRecoverableFiles.toMutableList().onEach { it.checked = false }
+            val filtered = filterFilesBySelection(recoverType, allFiles)
 
+            val groups = listOf(
+                StorageType.HIDDEN to filtered,
+                StorageType.STORAGE to filtered
+            ) + if (recoverType == RecoverType.PHOTO || recoverType == RecoverType.VIDEO) {
+                listOf(StorageType.ALBUM to filtered)
+            } else emptyList()
 
-            val tabTitles = listOf(
-                "${getString(R.string.str_hidden)}(10)",
-                "${getString(R.string.str_storage)}(10)",
-                "${getString(R.string.str_album)}(10)"
-            )
-
-            currentTabIndex = binding.tabLayout.selectedTabPosition
-            tabMediator?.detach()
-
-            val fragments =
-                listOf(FileListFragment(), FileListFragment(), FileListFragment())
-
-            binding.viewPager.offscreenPageLimit = fragments.size
-            binding.viewPager.adapter = object : FragmentStateAdapter(this@FileRecoveryListActivity) {
-                override fun getItemCount(): Int = fragments.size
-                override fun createFragment(position: Int) = fragments[position]
+            val tabInfo = groups.mapNotNull { (type, list) ->
+                val slice = list.filter { it.storageType == type }
+                if (slice.isNotEmpty()) {
+                    getTabTitle(type, slice.size) to FileListFragment(recoverType, slice)
+                } else null
             }
 
-            tabMediator = TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position -> tab.text = tabTitles.getOrNull(position) }
-            tabMediator?.attach()
-            tabLayout.setScrollPosition(currentTabIndex, 0f, false)
-            tabLayout.getTabAt(currentTabIndex)?.select()
+            withContext(Dispatchers.Main) {
+                bindViewPagerAndTabs(tabInfo)
+            }
+        }
+    }
 
+    private fun getTabTitle(type: StorageType, count: Int): String {
+        val titleRes = when (type) {
+            StorageType.HIDDEN -> R.string.str_hidden
+            StorageType.STORAGE -> R.string.str_storage
+            StorageType.ALBUM -> R.string.str_album
+        }
+        return "${getString(titleRes)}($count)"
+    }
+
+    private fun bindViewPagerAndTabs(tabInfo: List<Pair<String, Fragment>>) {
+        currentTabIndex = binding.tabLayout.selectedTabPosition
+        tabMediator?.detach()
+
+        binding.viewPager.apply {
+            offscreenPageLimit = tabInfo.size
+            adapter = object : FragmentStateAdapter(this@FileRecoveryListActivity) {
+                override fun getItemCount() = tabInfo.size
+                override fun createFragment(position: Int) = tabInfo[position].second
+            }
         }
 
+        tabMediator = TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
+            tab.text = tabInfo[pos].first
+        }.apply { attach() }
 
+        binding.tabLayout.run {
+            setScrollPosition(currentTabIndex, 0f, false)
+            getTabAt(currentTabIndex)?.select()
+        }
     }
+
+
+    private fun filterFilesBySelection(type: RecoverType?, list: List<FileInfo>): List<FileInfo> = when (type) {
+        RecoverType.VIDEO -> {
+            filterByRanges(
+                list, defaultSelections[type] ?: BooleanArray(0),
+                listOf(
+                    0L to 3 * 60_000L,
+                    3 * 60_000L to 10 * 60_000L,
+                    10 * 60_000L to 20 * 60_000L,
+                    20 * 60_000L to Long.MAX_VALUE
+                )
+            ) { FileUtils.getMediaDuration(it.filePath) }
+        }
+
+        RecoverType.AUDIO -> {
+            filterByRanges(
+                list, defaultSelections[type] ?: BooleanArray(0),
+                listOf(
+                    0L to 2 * 60_000L,
+                    2 * 60_000L to 5 * 60_000L,
+                    5 * 60_000L to 10 * 60_000L,
+                    10 * 60_000L to Long.MAX_VALUE
+                )
+            ) { FileUtils.getMediaDuration(it.filePath) }
+        }
+
+        RecoverType.DOC -> {
+            val now = System.currentTimeMillis()
+            filterByRanges(
+                list, defaultSelections[type] ?: BooleanArray(0),
+                listOf(
+                    getPastTimeRange(1) to now,
+                    getPastTimeRange(3) to now,
+                    getPastTimeRange(6) to now,
+                    0L to now
+                )
+            ) { it.lastModified }
+        }
+
+        RecoverType.PHOTO, null -> {
+            val mimeSelections = defaultSelections[type]
+                ?.withIndex()
+                ?.filter { it.value }
+                ?.mapNotNull { FileUtils.imageMimeTypes.getOrNull(it.index) }
+                ?: emptyList()
+            list.filter { it.mimeType in mimeSelections }
+        }
+    }
+
+
+    private fun <T> filterByRanges(
+        list: List<T>,
+        selections: BooleanArray,
+        ranges: List<Pair<Long, Long>>,
+        keySelector: (T) -> Long
+    ): List<T> {
+        val chosen = selections.withIndex().filter { it.value }.map { ranges[it.index] }
+        if (chosen.isEmpty()) return emptyList()
+
+        return list.filter { item ->
+            val v = keySelector(item)
+            chosen.any { (start, end) -> v in start until end }
+        }
+    }
+
 
     override fun initListeners() {
 
-        binding.apply {
+        binding.ivBack.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
 
-            ivBack.setOnClickListener {
-                onBackPressedDispatcher.onBackPressed()
+        binding.btnFilter.setOnClickListener {
+            showFilterDialog {
+
             }
-
-            btnFilter.setOnClickListener {
-                showFilterDialog {
-
-                }
-            }
-
         }
 
     }
