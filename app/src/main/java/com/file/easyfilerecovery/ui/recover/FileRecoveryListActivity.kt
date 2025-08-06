@@ -1,6 +1,5 @@
 package com.file.easyfilerecovery.ui.recover
 
-import android.annotation.SuppressLint
 import android.graphics.Color
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
@@ -13,11 +12,14 @@ import com.file.easyfilerecovery.databinding.ActivityFileRecoverListBinding
 import com.file.easyfilerecovery.ui.base.BaseActivity
 import com.google.android.material.tabs.TabLayoutMediator
 
-@SuppressLint("CustomSplashScreen")
+@Suppress("DEPRECATION")
 class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(ActivityFileRecoverListBinding::inflate) {
 
+    companion object {
+        const val RECOVER_TYPE_KEY = "recover_type_key"
+    }
 
-    private val recoverType by lazy { intent?.getSerializableExtra("") as? RecoverType }
+    private val recoverType by lazy { intent?.getSerializableExtra(RECOVER_TYPE_KEY) as? RecoverType }
     private var currentTabIndex = 0
     private var tabMediator: TabLayoutMediator? = null
 

@@ -1,22 +1,24 @@
 package com.file.easyfilerecovery.ui.common
 
-import android.annotation.SuppressLint
 import androidx.activity.addCallback
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.file.easyfilerecovery.R
+import com.file.easyfilerecovery.data.RecoverType
 import com.file.easyfilerecovery.databinding.ActivityCommonScanBinding
 import com.file.easyfilerecovery.ui.base.BaseActivity
 import com.file.easyfilerecovery.ui.recover.FileRecoveryListActivity
+import com.file.easyfilerecovery.ui.recover.FileRecoveryListActivity.Companion.RECOVER_TYPE_KEY
 import com.file.easyfilerecovery.utils.launchActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@SuppressLint("CustomSplashScreen")
+@Suppress("DEPRECATION")
 class CommonScanActivity : BaseActivity<ActivityCommonScanBinding>(ActivityCommonScanBinding::inflate) {
 
+    private val recoverType by lazy { intent?.getSerializableExtra(RECOVER_TYPE_KEY) as? RecoverType }
 
     override fun initUI() {
         lifecycleScope.launch(Dispatchers.Main) {
@@ -33,7 +35,9 @@ class CommonScanActivity : BaseActivity<ActivityCommonScanBinding>(ActivityCommo
             onBackPressedDispatcher.onBackPressed()
         }
         binding.btnOk.setOnClickListener {
-            launchActivity<FileRecoveryListActivity>(finish = true)
+            launchActivity<FileRecoveryListActivity>(finish = true) {
+                putExtra(RECOVER_TYPE_KEY, recoverType)
+            }
         }
     }
 
