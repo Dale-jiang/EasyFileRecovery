@@ -8,6 +8,8 @@ import androidx.lifecycle.lifecycleScope
 import com.file.easyfilerecovery.R
 import com.file.easyfilerecovery.databinding.ActivityCommonScanBinding
 import com.file.easyfilerecovery.ui.base.BaseActivity
+import com.file.easyfilerecovery.ui.recover.FileRecoveryListActivity
+import com.file.easyfilerecovery.utils.launchActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -29,6 +31,9 @@ class CommonScanActivity : BaseActivity<ActivityCommonScanBinding>(ActivityCommo
         }
         binding.ivBack.setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
+        }
+        binding.btnOk.setOnClickListener {
+            launchActivity<FileRecoveryListActivity>(finish = true)
         }
     }
 

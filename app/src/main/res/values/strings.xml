@@ -16,4 +16,8 @@
     <string name="str_scanning_done">Scan Completed!</string>
     <string name="str_check">Check</string>
     <string name="str_scan_result"><![CDATA[Found <font color="#4388FF">%s</font> recoverable files]]></string>
+    <string name="str_hidden">Hidden</string>
+    <string name="str_album">Album</string>
+    <string name="str_storage">Storage</string>
+    <string name="str_recover">Recover</string>
 </resources>

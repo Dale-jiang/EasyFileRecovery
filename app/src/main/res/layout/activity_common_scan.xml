@@ -33,7 +33,7 @@
 
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/lottieView"
-        android:layout_width="172dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -43,6 +43,7 @@
         app:layout_constraintVertical_bias="0.2"
         app:lottie_autoPlay="true"
         app:lottie_fileName="scan.json"
+        app:lottie_imageAssetsFolder="scan_images"
         app:lottie_loop="true" />
 
     <androidx.appcompat.widget.AppCompatTextView

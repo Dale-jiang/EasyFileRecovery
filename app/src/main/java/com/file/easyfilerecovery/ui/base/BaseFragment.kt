@@ -25,7 +25,7 @@ abstract class BaseFragment<VB : ViewBinding>(private val inflate: (inflater: La
 
     protected abstract fun initUI()
 
-    protected abstract fun initData()
+    protected open fun initData() = Unit
 
     override fun onDestroyView() {
         super.onDestroyView()

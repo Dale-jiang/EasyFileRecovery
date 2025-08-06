@@ -59,6 +59,10 @@
             android:name=".ui.common.CommonScanActivity"
             android:configChanges="orientation|screenSize|keyboardHidden" />
 
+        <activity
+            android:name=".ui.recover.FileRecoveryListActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
     </application>
 
 </manifest>
