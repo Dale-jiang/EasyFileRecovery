@@ -21,4 +21,7 @@
     <string name="str_storage">Storage</string>
     <string name="str_recover">Recover</string>
     <string name="str_no_files">No files</string>
+    <string name="str_ok">OK</string>
+    <string name="str_month">month</string>
+    <string name="str_filter_files">Filter files</string>
 </resources>

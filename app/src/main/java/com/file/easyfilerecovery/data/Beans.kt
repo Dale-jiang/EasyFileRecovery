@@ -16,10 +16,12 @@ enum class RecoverType(private val resId: Int) {
     fun getRecoverName(activity: AppCompatActivity): String = activity.getString(resId)
 }
 
+@Keep
 enum class StorageType {
     HIDDEN, STORAGE, ALBUM
 }
 
+@Keep
 @Parcelize
 data class FileInfo(
     val fileName: String = "",
