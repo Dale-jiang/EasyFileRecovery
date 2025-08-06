@@ -1,6 +1,11 @@
 package com.file.easyfilerecovery.ui.recover
 
 import android.annotation.SuppressLint
+import android.graphics.Color
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.file.easyfilerecovery.R
 import com.file.easyfilerecovery.data.RecoverType
@@ -65,6 +70,25 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
 
         }
 
+    }
+
+
+    private fun edgeToEdge() {
+        runCatching {
+            enableEdgeToEdge(statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT))
+            ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { _, insets ->
+                val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                window.decorView.setPadding(0, systemBarsInsets.top, 0, 0)
+                binding.btnContainer.setPadding(0, 0, 0, systemBarsInsets.bottom)
+                insets
+            }
+        }.onFailure { throwable ->
+            throwable.printStackTrace()
+        }
+    }
+
+    override fun onAttachedToWindow() {
+        edgeToEdge()
     }
 
 }
