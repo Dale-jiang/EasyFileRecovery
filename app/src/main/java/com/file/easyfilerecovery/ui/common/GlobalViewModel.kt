@@ -19,9 +19,11 @@ import java.io.File
 
 class GlobalViewModel : ViewModel() {
 
+    companion object{
+        val allRecoverableFiles = mutableListOf<FileInfo>()
+    }
 
     val onScanCompletedLiveData = MutableLiveData<Boolean>()
-    val allRecoverableFiles = mutableListOf<FileInfo>()
 
     fun scanRecoverableFiles(context: Context, recoverType: RecoverType?) {
         viewModelScope.launch(Dispatchers.IO + SupervisorJob()) {

@@ -20,12 +20,12 @@ abstract class BaseFragment<VB : ViewBinding>(private val inflate: (inflater: La
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initUI()
-        initData()
+        initListeners()
     }
 
     protected abstract fun initUI()
 
-    protected open fun initData() = Unit
+    protected open fun initListeners() = Unit
 
     override fun onDestroyView() {
         super.onDestroyView()

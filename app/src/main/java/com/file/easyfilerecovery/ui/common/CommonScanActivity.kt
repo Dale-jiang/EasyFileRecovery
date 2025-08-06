@@ -10,6 +10,7 @@ import com.file.easyfilerecovery.R
 import com.file.easyfilerecovery.data.RecoverType
 import com.file.easyfilerecovery.databinding.ActivityCommonScanBinding
 import com.file.easyfilerecovery.ui.base.BaseActivity
+import com.file.easyfilerecovery.ui.common.GlobalViewModel.Companion.allRecoverableFiles
 import com.file.easyfilerecovery.ui.recover.FileRecoveryListActivity
 import com.file.easyfilerecovery.ui.recover.FileRecoveryListActivity.Companion.RECOVER_TYPE_KEY
 import com.file.easyfilerecovery.utils.launchActivity
@@ -58,7 +59,7 @@ class CommonScanActivity : BaseActivity<ActivityCommonScanBinding>(ActivityCommo
                 binding.lottieView.pauseAnimation()
                 binding.groupScan.isVisible = false
                 binding.tvResult.text = HtmlCompat.fromHtml(
-                    String.format(getString(R.string.str_scan_result), globalVm.allRecoverableFiles.size.toString()),
+                    String.format(getString(R.string.str_scan_result), allRecoverableFiles.size.toString()),
                     HtmlCompat.FROM_HTML_MODE_LEGACY
                 )
                 binding.groupComplete.isVisible = true

@@ -9,6 +9,11 @@ import com.file.easyfilerecovery.utils.launchActivity
 
 class MainActivity : BaseStorageActivity<ActivityMainBinding>(ActivityMainBinding::inflate) {
 
+    override fun onResume() {
+        super.onResume()
+        GlobalViewModel.allRecoverableFiles.clear()
+    }
+
     override fun initUI() {
 
     }

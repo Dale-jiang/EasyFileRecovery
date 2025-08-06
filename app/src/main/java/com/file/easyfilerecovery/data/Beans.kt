@@ -1,8 +1,8 @@
 package com.file.easyfilerecovery.data
 
+import android.app.Activity
 import android.os.Parcelable
 import androidx.annotation.Keep
-import androidx.appcompat.app.AppCompatActivity
 import com.file.easyfilerecovery.R
 import kotlinx.parcelize.Parcelize
 
@@ -13,7 +13,7 @@ enum class RecoverType(private val resId: Int) {
     AUDIO(R.string.str_voice_recover),
     DOC(R.string.str_doc_recover);
 
-    fun getRecoverName(activity: AppCompatActivity): String = activity.getString(resId)
+    fun getRecoverName(activity: Activity): String = activity.getString(resId)
 }
 
 @Keep

@@ -17,6 +17,7 @@ import com.file.easyfilerecovery.data.StorageType
 import com.file.easyfilerecovery.databinding.ActivityFileRecoverListBinding
 import com.file.easyfilerecovery.ui.base.BaseActivity
 import com.file.easyfilerecovery.ui.common.GlobalViewModel
+import com.file.easyfilerecovery.ui.common.GlobalViewModel.Companion.allRecoverableFiles
 import com.file.easyfilerecovery.utils.CommonUtils.getPastTimeRange
 import com.file.easyfilerecovery.utils.FileUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -38,10 +39,7 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
             RecoverType.VIDEO to listOf("0-3 min", "3-10 min", "10-20 min", "20+ min"),
             RecoverType.AUDIO to listOf("0-2 min", "2-5 min", "5-10 min", "10+ min"),
             RecoverType.DOC to listOf(
-                "1 ${getString(R.string.str_month)}",
-                "3 ${getString(R.string.str_month)}",
-                "6 ${getString(R.string.str_month)}",
-                "12 ${getString(R.string.str_month)}"
+                "1 ${getString(R.string.str_month)}", "3 ${getString(R.string.str_month)}", "6 ${getString(R.string.str_month)}", "12 ${getString(R.string.str_month)}"
             )
         )
     }
@@ -66,20 +64,19 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
 
     private fun initViewPagerAndTabs() {
         lifecycleScope.launch(Dispatchers.IO) {
-            val allFiles = globalVm.allRecoverableFiles.toMutableList().onEach { it.checked = false }
+            val allFiles = allRecoverableFiles.toMutableList().onEach { it.checked = false }
             val filtered = filterFilesBySelection(recoverType, allFiles)
 
-            val groups = listOf(
-                StorageType.HIDDEN to filtered,
-                StorageType.STORAGE to filtered
+            val storageTypes = listOf(
+                StorageType.HIDDEN, StorageType.STORAGE
             ) + if (recoverType == RecoverType.PHOTO || recoverType == RecoverType.VIDEO) {
-                listOf(StorageType.ALBUM to filtered)
+                listOf(StorageType.ALBUM)
             } else emptyList()
 
-            val tabInfo = groups.mapNotNull { (type, list) ->
-                val slice = list.filter { it.storageType == type }
-                if (slice.isNotEmpty()) {
-                    getTabTitle(type, slice.size) to FileListFragment(recoverType, slice)
+            val tabInfo = storageTypes.mapNotNull { storageType ->
+                val count = filtered.count { it.storageType == storageType }
+                if (count >= 0) {
+                    getTabTitle(storageType, count) to FileListFragment.newInstance(recoverType!!, storageType)
                 } else null
             }
 
@@ -121,27 +118,19 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
     }
 
 
-    private fun filterFilesBySelection(type: RecoverType?, list: List<FileInfo>): List<FileInfo> = when (type) {
+    fun filterFilesBySelection(type: RecoverType?, list: List<FileInfo>): List<FileInfo> = when (type) {
         RecoverType.VIDEO -> {
             filterByRanges(
-                list, defaultSelections[type] ?: BooleanArray(0),
-                listOf(
-                    0L to 3 * 60_000L,
-                    3 * 60_000L to 10 * 60_000L,
-                    10 * 60_000L to 20 * 60_000L,
-                    20 * 60_000L to Long.MAX_VALUE
+                list, defaultSelections[type] ?: BooleanArray(0), listOf(
+                    0L to 3 * 60_000L, 3 * 60_000L to 10 * 60_000L, 10 * 60_000L to 20 * 60_000L, 20 * 60_000L to Long.MAX_VALUE
                 )
             ) { FileUtils.getMediaDuration(it.filePath) }
         }
 
         RecoverType.AUDIO -> {
             filterByRanges(
-                list, defaultSelections[type] ?: BooleanArray(0),
-                listOf(
-                    0L to 2 * 60_000L,
-                    2 * 60_000L to 5 * 60_000L,
-                    5 * 60_000L to 10 * 60_000L,
-                    10 * 60_000L to Long.MAX_VALUE
+                list, defaultSelections[type] ?: BooleanArray(0), listOf(
+                    0L to 2 * 60_000L, 2 * 60_000L to 5 * 60_000L, 5 * 60_000L to 10 * 60_000L, 10 * 60_000L to Long.MAX_VALUE
                 )
             ) { FileUtils.getMediaDuration(it.filePath) }
         }
@@ -149,32 +138,21 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
         RecoverType.DOC -> {
             val now = System.currentTimeMillis()
             filterByRanges(
-                list, defaultSelections[type] ?: BooleanArray(0),
-                listOf(
-                    getPastTimeRange(1) to now,
-                    getPastTimeRange(3) to now,
-                    getPastTimeRange(6) to now,
-                    0L to now
+                list, defaultSelections[type] ?: BooleanArray(0), listOf(
+                    getPastTimeRange(1) to now, getPastTimeRange(3) to now, getPastTimeRange(6) to now, 0L to now
                 )
             ) { it.lastModified }
         }
 
         RecoverType.PHOTO, null -> {
-            val mimeSelections = defaultSelections[type]
-                ?.withIndex()
-                ?.filter { it.value }
-                ?.mapNotNull { FileUtils.imageMimeTypes.getOrNull(it.index) }
-                ?: emptyList()
+            val mimeSelections = defaultSelections[type]?.withIndex()?.filter { it.value }?.mapNotNull { FileUtils.imageMimeTypes.getOrNull(it.index) } ?: emptyList()
             list.filter { it.mimeType in mimeSelections }
         }
     }
 
 
     private fun <T> filterByRanges(
-        list: List<T>,
-        selections: BooleanArray,
-        ranges: List<Pair<Long, Long>>,
-        keySelector: (T) -> Long
+        list: List<T>, selections: BooleanArray, ranges: List<Pair<Long, Long>>, keySelector: (T) -> Long
     ): List<T> {
         val chosen = selections.withIndex().filter { it.value }.map { ranges[it.index] }
         if (chosen.isEmpty()) return emptyList()
@@ -205,15 +183,12 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
         val type = recoverType ?: return
         val options = filterOptions[type] ?: return
         val current = defaultSelections.getValue(type).copyOf()
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.str_filter_files)
-            .setMultiChoiceItems(options.toTypedArray(), current) { _, which, isChecked ->
-                current[which] = isChecked
-            }
-            .setPositiveButton(R.string.str_ok) { _, _ ->
-                defaultSelections[type] = current
-                onAction()
-            }.show()
+        MaterialAlertDialogBuilder(this).setTitle(R.string.str_filter_files).setMultiChoiceItems(options.toTypedArray(), current) { _, which, isChecked ->
+            current[which] = isChecked
+        }.setPositiveButton(R.string.str_ok) { _, _ ->
+            defaultSelections[type] = current
+            onAction()
+        }.show()
     }
 
     private fun edgeToEdge() {
