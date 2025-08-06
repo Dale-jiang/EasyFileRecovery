@@ -3,6 +3,8 @@ package com.file.easyfilerecovery.ui.common
 import androidx.activity.addCallback
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
 import com.file.easyfilerecovery.R
 import com.file.easyfilerecovery.data.RecoverType
@@ -20,11 +22,12 @@ class CommonScanActivity : BaseActivity<ActivityCommonScanBinding>(ActivityCommo
 
     private val recoverType by lazy { intent?.getSerializableExtra(RECOVER_TYPE_KEY) as? RecoverType }
 
+    private val globalVm: GlobalViewModel by lazy {
+        ViewModelProvider(application as ViewModelStoreOwner, ViewModelProvider.AndroidViewModelFactory.getInstance(application))[GlobalViewModel::class.java]
+    }
+
     override fun initUI() {
-        lifecycleScope.launch(Dispatchers.Main) {
-            delay(2500L)
-            handleResult()
-        }
+        globalVm.scanRecoverableFiles(this, recoverType)
     }
 
     override fun initListeners() {
@@ -39,6 +42,14 @@ class CommonScanActivity : BaseActivity<ActivityCommonScanBinding>(ActivityCommo
                 putExtra(RECOVER_TYPE_KEY, recoverType)
             }
         }
+
+
+        globalVm.onScanCompletedLiveData.observe(this) {
+            lifecycleScope.launch(Dispatchers.Main) {
+                delay(2000L)
+                handleResult()
+            }
+        }
     }
 
     private fun handleResult() {
@@ -46,7 +57,10 @@ class CommonScanActivity : BaseActivity<ActivityCommonScanBinding>(ActivityCommo
             .withEndAction {
                 binding.lottieView.pauseAnimation()
                 binding.groupScan.isVisible = false
-                binding.tvResult.text = HtmlCompat.fromHtml(String.format(getString(R.string.str_scan_result), "20"), HtmlCompat.FROM_HTML_MODE_LEGACY)
+                binding.tvResult.text = HtmlCompat.fromHtml(
+                    String.format(getString(R.string.str_scan_result), globalVm.allRecoverableFiles.size.toString()),
+                    HtmlCompat.FROM_HTML_MODE_LEGACY
+                )
                 binding.groupComplete.isVisible = true
                 binding.ivComplete.apply {
                     scaleX = 0f
