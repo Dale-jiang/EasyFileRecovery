@@ -19,7 +19,7 @@ import java.io.File
 
 class GlobalViewModel : ViewModel() {
 
-    companion object{
+    companion object {
         val allRecoverableFiles = mutableListOf<FileInfo>()
     }
 
@@ -33,18 +33,27 @@ class GlobalViewModel : ViewModel() {
             val protectPath = Environment.getExternalStorageDirectory().resolve("EasyFileRecoveryOwner").path
 
             val mimeTypes = FileUtils.getMimeTypesFor(recoverType)
+
+            val mimeClause = if (recoverType == RecoverType.AUDIO || recoverType == RecoverType.VIDEO) {
+                mimeTypes.joinToString(
+                    prefix = "(",
+                    separator = " OR ",
+                    postfix = ")"
+                ) { "${MediaStore.Files.FileColumns.MIME_TYPE} LIKE ?" }
+            } else if (mimeTypes.isNotEmpty()) {
+                "${MediaStore.Files.FileColumns.MIME_TYPE} IN (${mimeTypes.joinToString { "?" }})"
+            } else {
+                "1"
+            }
+
             val selection = buildString {
                 append("${MediaStore.Files.FileColumns.SIZE} > 0")
                 append(" AND ${MediaStore.Files.FileColumns.DATA} NOT LIKE ?")
-                if (mimeTypes.isNotEmpty()) {
-                    append(" AND ${MediaStore.Files.FileColumns.MIME_TYPE} IN (")
-                    append(mimeTypes.joinToString(",") { "?" })
-                    append(")")
-                }
+                append(" AND $mimeClause")
             }
-            val selectionArgs = mutableListOf("%$protectPath%").apply {
-                addAll(mimeTypes)
-            }.toTypedArray()
+
+            val selectionArgs = arrayOf(protectPath) + mimeTypes.toTypedArray()
+
 
             val projection = arrayOf(
                 MediaStore.Files.FileColumns.DISPLAY_NAME,

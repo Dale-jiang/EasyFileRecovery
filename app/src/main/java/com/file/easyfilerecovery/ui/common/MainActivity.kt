@@ -35,15 +35,27 @@ class MainActivity : BaseStorageActivity<ActivityMainBinding>(ActivityMainBindin
             }
 
             btnVoice.setOnClickListener {
-
+                checkPermission {
+                    launchActivity<CommonScanActivity> {
+                        putExtra(RECOVER_TYPE_KEY, RecoverType.AUDIO)
+                    }
+                }
             }
 
             btnVideo.setOnClickListener {
-
+                checkPermission {
+                    launchActivity<CommonScanActivity> {
+                        putExtra(RECOVER_TYPE_KEY, RecoverType.VIDEO)
+                    }
+                }
             }
 
             btnDoc.setOnClickListener {
-
+                checkPermission {
+                    launchActivity<CommonScanActivity> {
+                        putExtra(RECOVER_TYPE_KEY, RecoverType.DOC)
+                    }
+                }
             }
 
             btnRestore.setOnClickListener {

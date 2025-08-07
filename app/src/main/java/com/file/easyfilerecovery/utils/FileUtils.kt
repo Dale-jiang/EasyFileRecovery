@@ -11,31 +11,10 @@ object FileUtils {
         "image/heif", "image/bmp", "image/webp"
     )
     private val videoMimeTypes = listOf(
-        "video/mp4",
-        "video/mpeg",
-        "video/avi",
-        "video/x-msvideo",
-        "video/quicktime",
-        "video/webm",
-        "video/x-matroska",
-        "video/3gpp",
-        "video/3gpp2",
-        "video/ogg"
+        "video/%",
     )
     private val audioMimeTypes = listOf(
-        "audio/mpeg",
-        "audio/mp3",
-        "audio/wav",
-        "audio/x-wav",
-        "audio/flac",
-        "audio/x-flac",
-        "audio/ogg",
-        "audio/vorbis",
-        "audio/aac",
-        "audio/x-aac",
-        "audio/amr",
-        "audio/3gpp",
-        "audio/3gpp2"
+        "audio/%"
     )
     private val documentMimeTypes = listOf(
         "application/pdf",
