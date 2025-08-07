@@ -46,10 +46,14 @@ class CommonScanActivity : BaseActivity<ActivityCommonScanBinding>(ActivityCommo
 
 
         globalVm.onScanCompletedLiveData.observe(this) {
-            lifecycleScope.launch(Dispatchers.Main) {
-                delay(2000L)
-                handleResult()
+            if (it) {
+                globalVm.onScanCompletedLiveData.postValue(false)
+                lifecycleScope.launch(Dispatchers.Main) {
+                    delay(2000L)
+                    handleResult()
+                }
             }
+
         }
     }
 

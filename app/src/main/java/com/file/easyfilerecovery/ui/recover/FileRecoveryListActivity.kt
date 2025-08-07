@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.blankj.utilcode.util.LogUtils
 import com.file.easyfilerecovery.R
 import com.file.easyfilerecovery.data.FileInfo
 import com.file.easyfilerecovery.data.RecoverType
@@ -66,6 +67,9 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
         lifecycleScope.launch(Dispatchers.IO) {
             val allFiles = allRecoverableFiles.toMutableList().onEach { it.checked = false }
             val filtered = filterFilesBySelection(recoverType, allFiles)
+            filtered.forEach {
+                LogUtils.e("------->>>>>>${it.fileName}---${it.duration}")
+            }
 
             val storageTypes = listOf(
                 StorageType.HIDDEN, StorageType.STORAGE
@@ -124,7 +128,10 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
                 list, defaultSelections[type] ?: BooleanArray(0), listOf(
                     0L to 3 * 60_000L, 3 * 60_000L to 10 * 60_000L, 10 * 60_000L to 20 * 60_000L, 20 * 60_000L to Long.MAX_VALUE
                 )
-            ) { FileUtils.getMediaDuration(it.filePath) }
+            ) {
+                //  FileUtils.getMediaDuration(it.filePath)
+                it.duration
+            }
         }
 
         RecoverType.AUDIO -> {
@@ -132,7 +139,9 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
                 list, defaultSelections[type] ?: BooleanArray(0), listOf(
                     0L to 2 * 60_000L, 2 * 60_000L to 5 * 60_000L, 5 * 60_000L to 10 * 60_000L, 10 * 60_000L to Long.MAX_VALUE
                 )
-            ) { FileUtils.getMediaDuration(it.filePath) }
+            ) {
+                it.duration
+            }
         }
 
         RecoverType.DOC -> {
@@ -159,6 +168,7 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
 
         return list.filter { item ->
             val v = keySelector(item)
+            LogUtils.e("-------->>>>>>${v}")
             chosen.any { (start, end) -> v in start until end }
         }
     }

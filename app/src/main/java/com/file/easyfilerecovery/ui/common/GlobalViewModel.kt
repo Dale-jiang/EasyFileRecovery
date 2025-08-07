@@ -23,7 +23,7 @@ class GlobalViewModel : ViewModel() {
         val allRecoverableFiles = mutableListOf<FileInfo>()
     }
 
-    val onScanCompletedLiveData = MutableLiveData<Boolean>()
+    val onScanCompletedLiveData = MutableLiveData(false)
 
     fun scanRecoverableFiles(context: Context, recoverType: RecoverType?) {
         viewModelScope.launch(Dispatchers.IO + SupervisorJob()) {
@@ -60,7 +60,8 @@ class GlobalViewModel : ViewModel() {
                 MediaStore.Files.FileColumns.DATA,
                 MediaStore.Files.FileColumns.SIZE,
                 MediaStore.Files.FileColumns.DATE_MODIFIED,
-                MediaStore.Files.FileColumns.MIME_TYPE
+                MediaStore.Files.FileColumns.MIME_TYPE,
+            //    MediaStore.MediaColumns.DURATION
             )
 
             val sortOrder = "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC"
@@ -73,6 +74,7 @@ class GlobalViewModel : ViewModel() {
                 val sizeIdx = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.SIZE)
                 val dateIdx = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATE_MODIFIED)
                 val mimeIdx = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MIME_TYPE)
+                // val durationIdx = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DURATION)
 
                 while (cursor.moveToNext()) {
                     val path = cursor.getStringOrNull(dataIdx).orEmpty()
@@ -89,6 +91,7 @@ class GlobalViewModel : ViewModel() {
                         filePath = path,
                         fileSize = cursor.getLongOrNull(sizeIdx) ?: 0L,
                         lastModified = (cursor.getLongOrNull(dateIdx) ?: 0L) * 1000L,
+                        duration = if (recoverType == RecoverType.VIDEO || recoverType == RecoverType.AUDIO) FileUtils.getMediaDuration(path) else 0L,
                         mimeType = cursor.getStringOrNull(mimeIdx).orEmpty(),
                         storageType = storageType
                     )

@@ -28,6 +28,7 @@ data class FileInfo(
     val filePath: String = "",
     val fileSize: Long = 0L,
     val lastModified: Long = 0L,
+    val duration: Long = 0L,
     val mimeType: String = "",
     val title: String = "",
     val storageType: StorageType = StorageType.STORAGE,
