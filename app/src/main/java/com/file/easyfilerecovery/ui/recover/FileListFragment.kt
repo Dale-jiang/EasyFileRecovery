@@ -1,14 +1,19 @@
 package com.file.easyfilerecovery.ui.recover
 
 import android.os.Bundle
-import androidx.fragment.app.activityViewModels
-import com.blankj.utilcode.util.LogUtils
+import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.file.easyfilerecovery.data.FileInfo
 import com.file.easyfilerecovery.data.RecoverType
 import com.file.easyfilerecovery.data.StorageType
 import com.file.easyfilerecovery.databinding.FragmentFileListBinding
 import com.file.easyfilerecovery.ui.base.BaseFragment
-import com.file.easyfilerecovery.ui.common.GlobalViewModel
 import com.file.easyfilerecovery.ui.common.GlobalViewModel.Companion.allRecoverableFiles
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class FileListFragment : BaseFragment<FragmentFileListBinding>(FragmentFileListBinding::inflate) {
 
@@ -28,31 +33,62 @@ class FileListFragment : BaseFragment<FragmentFileListBinding>(FragmentFileListB
 
     private lateinit var recoverType: RecoverType
     private lateinit var storageType: StorageType
-    private val globalVm: GlobalViewModel by activityViewModels()
-
 
     override fun initUI() {
+
         arguments?.let {
             recoverType = RecoverType.valueOf(it.getString(ARG_RECOVER_TYPE)!!)
             storageType = StorageType.valueOf(it.getString(ARG_STORAGE_TYPE)!!)
         }
-
-
-        val activity = requireActivity() as FileRecoveryListActivity
-        val primaryFiltered = activity.filterFilesBySelection(recoverType, allRecoverableFiles)
-        val slice = primaryFiltered.filter { it.storageType == storageType }
-
-        LogUtils.e("-------${primaryFiltered.size}{--->>>>>${recoverType.getRecoverName(requireActivity())}--${storageType.name}--${slice.size}")
-
-//            binding.recyclerView.adapter?.let { adapter ->
-//                if (adapter is FileListAdapter) {
-//                    adapter.submitList(slice)
-//                }
-//            }
-
+        handleData()
     }
 
-    override fun initListeners() {
+
+    private fun handleData() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val activity = requireActivity() as FileRecoveryListActivity
+            val primaryFiltered = activity.filterFilesBySelection(recoverType, allRecoverableFiles)
+            val slice = primaryFiltered.filter { it.storageType == storageType }
+
+            val resultList = mutableListOf<FileInfo>()
+            if (slice.isNotEmpty()) {
+                val map = slice.groupBy { it.title }
+                map.forEach {
+                    resultList.add(FileInfo(title = it.value[0].title, isTitle = true))
+                    resultList.addAll(it.value)
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+
+                val adapter = FileListAdapter(requireContext(), recoverType, resultList, onChecked = {
+
+                }, onItemClick = { item, imgId ->
+
+                })
+
+                val layoutManager = when (recoverType) {
+                    RecoverType.PHOTO, RecoverType.VIDEO -> {
+                        GridLayoutManager(requireContext(), 3).apply {
+                            spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                                override fun getSpanSize(position: Int): Int {
+                                    return when (adapter.getItemViewType(position)) {
+                                        0 -> 3
+                                        else -> 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    else -> LinearLayoutManager(requireContext())
+                }
+                binding.recyclerView.layoutManager = layoutManager
+                binding.recyclerView.itemAnimator = null
+                binding.recyclerView.adapter = adapter
+                binding.tvEmpty.isVisible = resultList.isEmpty()
+            }
+        }
 
     }
 
