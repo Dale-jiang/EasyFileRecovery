@@ -1,6 +1,5 @@
 package com.file.easyfilerecovery.ui.recover
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -45,7 +44,6 @@ class FileListFragment : BaseFragment<FragmentFileListBinding>(FragmentFileListB
     }
 
 
-    @SuppressLint("NotifyDataSetChanged")
     private fun handleData() {
         val ctx = requireContext()
         val act = requireActivity() as FileRecoveryListActivity
@@ -68,9 +66,7 @@ class FileListFragment : BaseFragment<FragmentFileListBinding>(FragmentFileListB
 
             val adapter = (binding.recyclerView.adapter as? FileListAdapter) ?: run {
                 FileListAdapter(
-                    ctx,
                     recoverType,
-                    mutableListOf(),
                     onChecked = { },
                     onItemClick = { _, _ -> }
                 ).also { binding.recyclerView.adapter = it }
@@ -93,9 +89,7 @@ class FileListFragment : BaseFragment<FragmentFileListBinding>(FragmentFileListB
                 binding.recyclerView.itemAnimator = null
             }
 
-            adapter.list.clear()
-            adapter.list.addAll(resultList)
-            adapter.notifyDataSetChanged()
+            adapter.submitList(resultList)
             binding.tvEmpty.isVisible = resultList.isEmpty()
         }
     }
