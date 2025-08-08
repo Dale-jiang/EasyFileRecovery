@@ -14,43 +14,55 @@ import com.file.easyfilerecovery.R
 class VideoPlayerService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
-    private val tag = "VideoPlayerService"
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
-        return mediaSession
-    }
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onCreate() {
         super.onCreate()
-        runCatching {
-            LogUtils.e(tag, "VideoPlayerService onCreate")
-            mediaSession = MediaSession.Builder(this,
-                ExoPlayer.Builder(this).setAudioAttributes(AudioAttributes.DEFAULT, true).build().apply {
-                    playWhenReady = true
-                    addListener(object : Player.Listener {
-                        override fun onPlayerError(error: PlaybackException) {
-                            ToastUtils.showShort(getString(R.string.str_unknown_error))
-                        }
-                    })
-                }).build()
-        }
+        LogUtils.i(TAG, "onCreate")
+        mediaSession = runCatching {
+            val player = buildPlayer()
+            MediaSession.Builder(this, player).build()
+        }.onFailure { e ->
+            LogUtils.e(TAG, "Create MediaSession failed: ${e.message}")
+        }.getOrNull()
     }
 
+    private fun buildPlayer(): ExoPlayer =
+        ExoPlayer.Builder(this)
+            .setAudioAttributes(AudioAttributes.DEFAULT, true).build().apply {
+                playWhenReady = true
+                addListener(object : Player.Listener {
+                    override fun onPlayerError(error: PlaybackException) {
+                        LogUtils.e(TAG, "Player error: ${error.message}")
+                        ToastUtils.showShort(getString(R.string.str_unknown_error))
+                    }
+                })
+            }
+
     override fun onTaskRemoved(rootIntent: Intent?) {
-        runCatching {
-            LogUtils.e(tag, "VideoPlayerService onTaskRemoved")
-            mediaSession?.player?.takeIf { !it.playWhenReady || it.mediaItemCount == 0 || it.playbackState == Player.STATE_ENDED }?.run { stopSelf() }
-        }
+        super.onTaskRemoved(rootIntent)
+        LogUtils.i(TAG, "onTaskRemoved")
+
+        val player = mediaSession?.player ?: return
+        val shouldStop = !player.playWhenReady ||
+                player.mediaItemCount == 0 ||
+                player.playbackState == Player.STATE_ENDED
+
+        if (shouldStop) stopSelf()
     }
 
     override fun onDestroy() {
-        runCatching {
-            mediaSession?.run {
-                player.release()
-                release()
-                mediaSession = null
-            }
+        LogUtils.i(TAG, "onDestroy")
+        mediaSession?.let { session ->
+            session.player.release()
+            session.release()
+            mediaSession = null
         }
         super.onDestroy()
+    }
+
+    companion object {
+        private const val TAG = "VideoPlayerService"
     }
 }
