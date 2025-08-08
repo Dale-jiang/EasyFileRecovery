@@ -1,5 +1,6 @@
 package com.file.easyfilerecovery.ui.recover
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -44,52 +45,59 @@ class FileListFragment : BaseFragment<FragmentFileListBinding>(FragmentFileListB
     }
 
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun handleData() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val activity = requireActivity() as FileRecoveryListActivity
-            val primaryFiltered = activity.filterFilesBySelection(recoverType, allRecoverableFiles)
-            val slice = primaryFiltered.filter { it.storageType == storageType }
+        val ctx = requireContext()
+        val act = requireActivity() as FileRecoveryListActivity
 
-            val resultList = mutableListOf<FileInfo>()
-            if (slice.isNotEmpty()) {
-                val map = slice.groupBy { it.title }
-                map.forEach {
-                    resultList.add(FileInfo(title = it.value[0].title, isTitle = true))
-                    resultList.addAll(it.value)
-                }
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            val resultList = withContext(Dispatchers.Default) {
+                act.filterFilesBySelection(recoverType, allRecoverableFiles)
+                    .asSequence()
+                    .filter { it.storageType == storageType }
+                    .groupBy { it.title }
+                    .entries
+                    .flatMap { (title, items) ->
+                        sequenceOf(FileInfo(title = title, isTitle = true)) + items.asSequence()
+                    }
+                    .toList()
             }
 
-            withContext(Dispatchers.Main) {
+            if (!isAdded) return@launch
 
-                val adapter = FileListAdapter(requireContext(), recoverType, resultList, onChecked = {
+            val adapter = (binding.recyclerView.adapter as? FileListAdapter) ?: run {
+                FileListAdapter(
+                    ctx,
+                    recoverType,
+                    mutableListOf(),
+                    onChecked = { },
+                    onItemClick = { _, _ -> }
+                ).also { binding.recyclerView.adapter = it }
+            }
 
-                }, onItemClick = { item, imgId ->
-
-                })
-
-                val layoutManager = when (recoverType) {
+            if (binding.recyclerView.layoutManager == null) {
+                binding.recyclerView.layoutManager = when (recoverType) {
                     RecoverType.PHOTO, RecoverType.VIDEO -> {
-                        GridLayoutManager(requireContext(), 3).apply {
+                        GridLayoutManager(ctx, 3).apply {
                             spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
                                 override fun getSpanSize(position: Int): Int {
-                                    return when (adapter.getItemViewType(position)) {
-                                        0 -> 3
-                                        else -> 1
-                                    }
+                                    return if (adapter.getItemViewType(position) == 0) 3 else 1
                                 }
                             }
                         }
                     }
 
-                    else -> LinearLayoutManager(requireContext())
+                    else -> LinearLayoutManager(ctx)
                 }
-                binding.recyclerView.layoutManager = layoutManager
                 binding.recyclerView.itemAnimator = null
-                binding.recyclerView.adapter = adapter
-                binding.tvEmpty.isVisible = resultList.isEmpty()
             }
-        }
 
+            adapter.list.clear()
+            adapter.list.addAll(resultList)
+            adapter.notifyDataSetChanged()
+            binding.tvEmpty.isVisible = resultList.isEmpty()
+        }
     }
 
 }

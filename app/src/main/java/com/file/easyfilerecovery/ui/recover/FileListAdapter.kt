@@ -20,7 +20,7 @@ import com.file.easyfilerecovery.utils.CommonUtils
 class FileListAdapter(
     private val context: Context,
     private val recoverType: RecoverType,
-    private val list: MutableList<FileInfo>,
+    val list: MutableList<FileInfo>,
     private val onChecked: () -> Unit = {},
     private val onItemClick: (item: FileInfo, imgId: Int) -> Unit = { _, _ -> }
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
