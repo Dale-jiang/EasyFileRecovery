@@ -13,7 +13,9 @@ import com.file.easyfilerecovery.data.RecoverType
 import com.file.easyfilerecovery.data.StorageType
 import com.file.easyfilerecovery.utils.FileUtils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -24,9 +26,14 @@ class GlobalViewModel : ViewModel() {
     }
 
     val onScanCompletedLiveData = MutableLiveData(false)
+    private var scanJob: Job? = null
 
     fun scanRecoverableFiles(context: Context, recoverType: RecoverType?) {
-        viewModelScope.launch(Dispatchers.IO + SupervisorJob()) {
+        scanJob?.cancel()
+        scanJob = viewModelScope.launch(Dispatchers.IO + SupervisorJob()) {
+
+            val minDurationMs = 2_000L
+            val startAt = System.currentTimeMillis()
 
             val files = mutableListOf<FileInfo>()
 
@@ -61,7 +68,7 @@ class GlobalViewModel : ViewModel() {
                 MediaStore.Files.FileColumns.SIZE,
                 MediaStore.Files.FileColumns.DATE_MODIFIED,
                 MediaStore.Files.FileColumns.MIME_TYPE,
-            //    MediaStore.MediaColumns.DURATION
+                //    MediaStore.MediaColumns.DURATION
             )
 
             val sortOrder = "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC"
@@ -95,6 +102,11 @@ class GlobalViewModel : ViewModel() {
                         mimeType = cursor.getStringOrNull(mimeIdx).orEmpty(),
                         storageType = storageType
                     )
+                }
+
+                val elapsed = System.currentTimeMillis() - startAt
+                if (elapsed < minDurationMs) {
+                    delay(minDurationMs - elapsed)
                 }
 
                 allRecoverableFiles.clear()

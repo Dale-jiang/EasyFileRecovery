@@ -15,7 +15,6 @@ import com.file.easyfilerecovery.ui.recover.FileRecoveryListActivity
 import com.file.easyfilerecovery.ui.recover.FileRecoveryListActivity.Companion.RECOVER_TYPE_KEY
 import com.file.easyfilerecovery.utils.launchActivity
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Suppress("DEPRECATION")
@@ -49,7 +48,6 @@ class CommonScanActivity : BaseActivity<ActivityCommonScanBinding>(ActivityCommo
             if (it) {
                 globalVm.onScanCompletedLiveData.postValue(false)
                 lifecycleScope.launch(Dispatchers.Main) {
-                    delay(2000L)
                     handleResult()
                 }
             }
