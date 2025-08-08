@@ -8,7 +8,6 @@ import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
@@ -16,20 +15,21 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.file.easyfilerecovery.R
 import com.file.easyfilerecovery.data.FileInfo
 import com.file.easyfilerecovery.databinding.ActivityVideoPlayerBinding
 import com.file.easyfilerecovery.ui.base.BaseActivity
 import com.google.common.util.concurrent.ListenableFuture
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.launch
+import com.google.common.util.concurrent.MoreExecutors
 
 @Suppress("DEPRECATION")
 class VideoPlayerActivity : BaseActivity<ActivityVideoPlayerBinding>(ActivityVideoPlayerBinding::inflate) {
 
     companion object {
         const val RECOVER_FILE_INFO_KEY = "recover_file_info_key"
+        private const val TAG = "VideoPlayerActivity"
     }
 
     private val fileInfo by lazy { intent?.getParcelableExtra<FileInfo>(RECOVER_FILE_INFO_KEY) }
@@ -39,7 +39,6 @@ class VideoPlayerActivity : BaseActivity<ActivityVideoPlayerBinding>(ActivityVid
 
     override fun initUI() {
         fileInfo ?: run { finish(); return }
-        initController()
     }
 
     override fun initListeners() {
@@ -47,33 +46,55 @@ class VideoPlayerActivity : BaseActivity<ActivityVideoPlayerBinding>(ActivityVid
     }
 
     @OptIn(UnstableApi::class)
-    private fun initController() {
-
+    override fun onStart() {
+        super.onStart()
         val token = SessionToken(this, ComponentName(this, VideoPlayerService::class.java))
 
         controllerFuture = MediaController.Builder(this, token).buildAsync()
+        controllerFuture.addListener({
+            try {
+                val controller = controllerFuture.get()
+                mediaController = controller
+                binding.playerView.player = controller
+                binding.playerView.hideController()
 
-        lifecycleScope.launch {
-            val controller = controllerFuture.await()
-            mediaController = controller
-            binding.playerView.player = controller
-            binding.playerView.hideController()
-
-            fileInfo?.let { info ->
+                val info = fileInfo ?: return@addListener
                 val mediaItem = MediaItem.Builder()
                     .setUri(info.filePath.toUri())
-                    .setMediaMetadata(MediaMetadata.Builder().setTitle(info.fileName).build())
-                    .build()
+                    .setMediaMetadata(
+                        MediaMetadata.Builder()
+                            .setTitle(info.fileName)
+                            .build()
+                    ).build()
+
                 controller.addListener(object : Player.Listener {
                     override fun onPlayerError(error: PlaybackException) {
+                        LogUtils.e(TAG, "Player error: ${error.errorCodeName} / ${error.message}")
                         ToastUtils.showShort(getString(R.string.str_unknown_error))
                     }
                 })
+
                 controller.setMediaItem(mediaItem)
                 controller.prepare()
                 controller.play()
+
+            } catch (t: Throwable) {
+                LogUtils.e(TAG, "Attach controller failed: ${t.message}")
+                ToastUtils.showShort(getString(R.string.str_unknown_error))
+                finish()
             }
+        }, MoreExecutors.directExecutor())
+    }
+
+    override fun onStop() {
+        super.onStop()
+        binding.playerView.player = null
+        mediaController?.let {
+            it.stop()
+            it.release()
+            mediaController = null
         }
+        runCatching { MediaController.releaseFuture(controllerFuture) }
     }
 
     private fun edgeToEdge() {
