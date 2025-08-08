@@ -75,7 +75,8 @@ class FileListAdapter(
             binding.ivCheck.setOnClickListener {
                 val pos = adapterPosition.takeIf { it != RecyclerView.NO_POSITION } ?: return@setOnClickListener
                 val cur = getItem(pos)
-                submitList(currentList.toMutableList().apply { set(pos, cur.copy(checked = !cur.checked)) })
+                cur.checked = !cur.checked
+                submitList(currentList.toMutableList().apply { set(pos, cur) })
                 notifyItemChanged(pos, PAYLOAD_CHECK)
                 onChecked.invoke()
             }
@@ -98,7 +99,8 @@ class FileListAdapter(
             binding.ivCheck.setOnClickListener {
                 val pos = adapterPosition.takeIf { it != RecyclerView.NO_POSITION } ?: return@setOnClickListener
                 val cur = getItem(pos)
-                submitList(currentList.toMutableList().apply { set(pos, cur.copy(checked = !cur.checked)) })
+                cur.checked = !cur.checked
+                submitList(currentList.toMutableList().apply { set(pos, cur) })
                 notifyItemChanged(pos, PAYLOAD_CHECK)
                 onChecked.invoke()
             }

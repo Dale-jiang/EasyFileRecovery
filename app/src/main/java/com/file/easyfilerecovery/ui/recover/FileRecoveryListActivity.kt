@@ -6,8 +6,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.file.easyfilerecovery.R
@@ -16,7 +14,6 @@ import com.file.easyfilerecovery.data.RecoverType
 import com.file.easyfilerecovery.data.StorageType
 import com.file.easyfilerecovery.databinding.ActivityFileRecoverListBinding
 import com.file.easyfilerecovery.ui.base.BaseActivity
-import com.file.easyfilerecovery.ui.common.GlobalViewModel
 import com.file.easyfilerecovery.ui.common.GlobalViewModel.Companion.allRecoverableFiles
 import com.file.easyfilerecovery.utils.CommonUtils.getPastTimeRange
 import com.file.easyfilerecovery.utils.FileUtils
@@ -52,10 +49,6 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
     private var currentTabIndex = 0
     private var tabMediator: TabLayoutMediator? = null
 
-    private val globalVm: GlobalViewModel by lazy {
-        ViewModelProvider(application as ViewModelStoreOwner, ViewModelProvider.AndroidViewModelFactory.getInstance(application))[GlobalViewModel::class.java]
-    }
-
     override fun initUI() {
         binding.tvTitle.text = recoverType?.getRecoverName(this) ?: ""
         initViewPagerAndTabs()
@@ -82,6 +75,7 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
 
             withContext(Dispatchers.Main) {
                 bindViewPagerAndTabs(tabInfo)
+                setBtnStatus()
             }
         }
     }
@@ -180,6 +174,14 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
             }
         }
 
+    }
+
+    fun setBtnStatus() {
+        val checkedList = allRecoverableFiles.filter { it.checked }
+        binding.btnRecover.apply {
+            isEnabled = checkedList.isNotEmpty()
+            text = if (checkedList.isEmpty()) getString(R.string.str_recover) else "${getString(R.string.str_recover)} (${checkedList.size})"
+        }
     }
 
 

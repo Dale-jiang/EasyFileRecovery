@@ -67,7 +67,9 @@ class FileListFragment : BaseFragment<FragmentFileListBinding>(FragmentFileListB
             val adapter = (binding.recyclerView.adapter as? FileListAdapter) ?: run {
                 FileListAdapter(
                     recoverType,
-                    onChecked = { },
+                    onChecked = {
+                        (requireActivity() as FileRecoveryListActivity).setBtnStatus()
+                    },
                     onItemClick = { _, _ -> }
                 ).also { binding.recyclerView.adapter = it }
             }
