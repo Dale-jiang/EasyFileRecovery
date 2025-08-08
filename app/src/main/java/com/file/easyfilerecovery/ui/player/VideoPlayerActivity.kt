@@ -42,6 +42,10 @@ class VideoPlayerActivity : BaseActivity<ActivityVideoPlayerBinding>(ActivityVid
         initController()
     }
 
+    override fun initListeners() {
+        binding.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+    }
+
     @OptIn(UnstableApi::class)
     private fun initController() {
 
