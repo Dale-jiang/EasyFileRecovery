@@ -1,6 +1,11 @@
 package com.file.easyfilerecovery.utils
 
+import android.content.Context
 import android.media.MediaMetadataRetriever
+import android.net.Uri
+import android.os.Build
+import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import com.file.easyfilerecovery.data.RecoverType
 import java.io.File
 
@@ -59,6 +64,12 @@ object FileUtils {
         }.getOrNull() ?: 0L
         runCatching { retriever.release() }
         return duration
+    }
+
+
+    fun buildUri(context: Context, path: String?): Uri? {
+        if (path.isNullOrBlank()) return null
+        return if (path.startsWith("/")) FileProvider.getUriForFile(context, context.packageName + ".allRecovery.FileProvider", File(path)) else path.toUri()
     }
 
 }

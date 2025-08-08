@@ -7,7 +7,9 @@ import com.file.easyfilerecovery.data.FileInfo
 import com.file.easyfilerecovery.data.RecoverType
 import com.file.easyfilerecovery.databinding.ActivityFileDetailsBinding
 import com.file.easyfilerecovery.ui.base.BaseActivity
+import com.file.easyfilerecovery.ui.player.VideoPlayerActivity
 import com.file.easyfilerecovery.utils.CommonUtils
+import com.file.easyfilerecovery.utils.launchActivity
 
 @Suppress("DEPRECATION")
 class FileDetailsActivity : BaseActivity<ActivityFileDetailsBinding>(ActivityFileDetailsBinding::inflate) {
@@ -47,7 +49,9 @@ class FileDetailsActivity : BaseActivity<ActivityFileDetailsBinding>(ActivityFil
                 }
 
                 imgContainer.setOnClickListener {
-                    // TODO：
+                    if (recoverType == RecoverType.VIDEO || recoverType == RecoverType.AUDIO) {
+                        launchActivity<VideoPlayerActivity> { putExtra(VideoPlayerActivity.RECOVER_FILE_INFO_KEY, fileInfo) }
+                    }
                 }
                 btnRecover.setOnClickListener {
                     // TODO：
