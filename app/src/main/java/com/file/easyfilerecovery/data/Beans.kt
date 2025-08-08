@@ -31,7 +31,7 @@ data class FileInfo(
     val duration: Long = 0L,
     val mimeType: String = "",
     val title: String = "",
-    val storageType: StorageType = StorageType.STORAGE,
     val isTitle: Boolean = false,
+    val storageType: StorageType = StorageType.STORAGE,
     var checked: Boolean = false
 ) : Parcelable

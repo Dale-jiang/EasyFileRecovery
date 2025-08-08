@@ -38,11 +38,11 @@ class FileListFragment : BaseFragment<FragmentFileListBinding>(FragmentFileListB
         }
 
 
-//        val activity = requireActivity() as FileRecoveryListActivity
-//        val primaryFiltered = activity.filterFilesBySelection(recoverType, allRecoverableFiles)
-//        val slice = primaryFiltered.filter { it.storageType == storageType }
+        val activity = requireActivity() as FileRecoveryListActivity
+        val primaryFiltered = activity.filterFilesBySelection(recoverType, allRecoverableFiles)
+        val slice = primaryFiltered.filter { it.storageType == storageType }
 
-//        LogUtils.e("-------${primaryFiltered.size}{--->>>>>${recoverType.getRecoverName(requireActivity())}--${storageType.name}--${slice.size}")
+        LogUtils.e("-------${primaryFiltered.size}{--->>>>>${recoverType.getRecoverName(requireActivity())}--${storageType.name}--${slice.size}")
 
 //            binding.recyclerView.adapter?.let { adapter ->
 //                if (adapter is FileListAdapter) {

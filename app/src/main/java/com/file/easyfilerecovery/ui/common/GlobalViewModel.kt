@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.file.easyfilerecovery.data.FileInfo
 import com.file.easyfilerecovery.data.RecoverType
 import com.file.easyfilerecovery.data.StorageType
+import com.file.easyfilerecovery.utils.CommonUtils.formatDateTime
 import com.file.easyfilerecovery.utils.FileUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -93,14 +94,17 @@ class GlobalViewModel : ViewModel() {
                         else -> StorageType.STORAGE
                     }
 
+                    val modifyTime = (cursor.getLongOrNull(dateIdx) ?: 0L) * 1000L
+
                     files += FileInfo(
                         fileName = cursor.getStringOrNull(nameIdx).orEmpty(),
                         filePath = path,
                         fileSize = cursor.getLongOrNull(sizeIdx) ?: 0L,
-                        lastModified = (cursor.getLongOrNull(dateIdx) ?: 0L) * 1000L,
+                        lastModified = modifyTime,
                         duration = if (recoverType == RecoverType.VIDEO || recoverType == RecoverType.AUDIO) FileUtils.getMediaDuration(path) else 0L,
                         mimeType = cursor.getStringOrNull(mimeIdx).orEmpty(),
-                        storageType = storageType
+                        storageType = storageType,
+                        title = formatDateTime(modifyTime, "MMMM yyyy")
                     )
                 }
 
