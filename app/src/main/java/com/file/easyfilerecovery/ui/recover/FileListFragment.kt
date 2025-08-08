@@ -11,6 +11,7 @@ import com.file.easyfilerecovery.data.StorageType
 import com.file.easyfilerecovery.databinding.FragmentFileListBinding
 import com.file.easyfilerecovery.ui.base.BaseFragment
 import com.file.easyfilerecovery.ui.common.GlobalViewModel.Companion.allRecoverableFiles
+import com.file.easyfilerecovery.utils.launchActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -70,7 +71,14 @@ class FileListFragment : BaseFragment<FragmentFileListBinding>(FragmentFileListB
                     onChecked = {
                         (requireActivity() as FileRecoveryListActivity).setBtnStatus()
                     },
-                    onItemClick = { _, _ -> }
+                    onItemClick = { info, id ->
+                        requireActivity().launchActivity<FileDetailsActivity> {
+                            putExtra(FileDetailsActivity.RECOVER_FILE_INFO_KEY, info)
+                            putExtra(FileDetailsActivity.RECOVER_IMAGE_KEY, id)
+                            putExtra(FileDetailsActivity.RECOVER_TYPE_KEY, recoverType)
+                        }
+
+                    }
                 ).also { binding.recyclerView.adapter = it }
             }
 

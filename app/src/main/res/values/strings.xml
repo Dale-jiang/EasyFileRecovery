@@ -24,4 +24,7 @@
     <string name="str_ok">OK</string>
     <string name="str_month">month</string>
     <string name="str_filter_files">Filter files</string>
+    <string name="str_name">Name:</string>
+    <string name="str_path">Path:</string>
+    <string name="str_save_time">Save time:</string>
 </resources>
