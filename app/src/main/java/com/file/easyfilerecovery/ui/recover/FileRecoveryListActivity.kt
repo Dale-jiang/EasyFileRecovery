@@ -176,7 +176,7 @@ class FileRecoveryListActivity : BaseActivity<ActivityFileRecoverListBinding>(Ac
 
         binding.btnFilter.setOnClickListener {
             showFilterDialog {
-
+                initViewPagerAndTabs()
             }
         }
 

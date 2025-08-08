@@ -5,7 +5,10 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import com.blankj.utilcode.util.ConvertUtils
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.file.easyfilerecovery.R
 import com.file.easyfilerecovery.data.FileInfo
 import com.file.easyfilerecovery.data.RecoverType
@@ -25,7 +28,10 @@ class FileListAdapter(
     inner class TitleHolder(val binding: ItemFileTitleBinding) : RecyclerView.ViewHolder(binding.root)
     inner class MediaHolder(val binding: ItemFileMediaBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bindData(item: FileInfo) {
-            Glide.with(context).load(item.filePath).centerCrop().into(binding.ivCover)
+            Glide.with(context).load(item.filePath).transform(
+                CenterCrop(),
+                RoundedCorners(ConvertUtils.dp2px(11f))
+            ).into(binding.ivCover)
             binding.ivPlay.isVisible = recoverType == RecoverType.VIDEO
             binding.ivCheck.setImageResource(if (item.checked) R.drawable.ic_item_checked else R.drawable.ic_item_uncheck_grey)
             binding.ivCheck.setOnClickListener {
